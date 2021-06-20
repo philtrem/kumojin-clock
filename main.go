@@ -19,7 +19,7 @@ func setLogOutput() {
 func main() {
 	setLogOutput()
 
-	http.Handle("/", http.FileServer(http.Dir("./front-end/build")))
+	http.Handle("/", http.FileServer(http.Dir("./frontend/build")))
 	http.HandleFunc("/timezone", timezoneHandler)
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
