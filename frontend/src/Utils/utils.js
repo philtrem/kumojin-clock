@@ -4,10 +4,10 @@ n.b: input format must be "hh:mm"
 
 function formattedTimeToMinutesParser(formattedTimeString) {
     let minutes = 0;
-    formattedTimeString.split(":");
+    const arr = formattedTimeString.split(":");
 
-    minutes += formattedTimeString[0] * 60
-    minutes += formattedTimeString[1];
+    minutes += Number(arr[0]) * 60;
+    minutes += Number(arr[1]);
 
     return minutes;
 }
