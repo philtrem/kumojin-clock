@@ -1,8 +1,9 @@
 import styled from 'styled-components';
 import SunAnimationWidget from "./Components/SunAnimationWidget";
-import {useEffect, useReducer, useState} from "react";
-import cloudsMountainsImageTop from './Images/clouds-mountains-top.png'
-import cloudsMountainsImage from './Images/clouds-mountains.jpg'
+import {useEffect, useReducer, useRef, useState} from "react";
+import cloudsMountainsImageTop from './Images/clouds-mountains-top.png';
+import cloudsMountainsImage from './Images/clouds-mountains.jpg';
+import StyledToggleSwitch from "./Components/ToggleSwitch";
 
 const Wrapper = styled.div`
   display: flex;
@@ -11,18 +12,19 @@ const Wrapper = styled.div`
   justify-content: center;
   height: 100vh;
   width: 100vw;
-`
+  overflow: hidden;
+`;
 
 const Container = styled.div`
   display: flex;
-  flex-direction: column;
+  flex-direction: ${props => props.flexDirection};
   justify-content: center;
   align-items: center;
   background-image: url(${props => props.backgroundImage});
   background-repeat: no-repeat;
   height: ${props => props.height};
   width: ${props => props.width};
-`
+`;
 
 const CloudsMountainsImageTop = styled.div`
   background-repeat: no-repeat;
@@ -32,56 +34,102 @@ const CloudsMountainsImageTop = styled.div`
 `;
 
 function App() {
+    const [timezone, setTimezone] = useState(null);
+    const [isTimezoneToggled, setIsTimezoneToggled] = useState(false);
+
+    useEffect(() => {
+        let didCancel = false;
+
+        async function fetchTimezone() {
+            try {
+                const response = await fetch('/timezone');
+
+                if (!didCancel) {
+                    setTimezone(await response.json());
+                }
+            } catch (error) {
+                console.log(`${'%c'}An error has occurred: ${error}`, 'color: red;');
+            }
+        }
+
+        fetchTimezone();
+        return () => {
+            didCancel = true;
+        };
+    }, []);
+
     return (
         <Wrapper>
             <header>
             </header>
 
-            <Container height={'50%'} width={'100%'}>
-                <SunAnimationWidget/>
+            <Container height={'55%'} width={'100%'} flexDirection={'column'}>
+                <SunAnimationWidget timezone={timezone}/>
                 <CloudsMountainsImageTop/>
             </Container>
 
-            <Container height={'50%'} width={'100%'} backgroundImage={cloudsMountainsImage}>
-                <StyledClock/>
+            <Container height={'45%'} width={'100%'} backgroundImage={cloudsMountainsImage} flexDirection={'row'}>
+                <StyledClock timezone={timezone} isTimezoneToggled={isTimezoneToggled}/>
+                <StyledToggleSwitch setIsToggled={setIsTimezoneToggled}/>
             </Container>
         </Wrapper>
     );
 }
 
 const StyledClock = styled(Clock)`
-  display: flex;
-  align-content: center;
-  align-items: center;
-`
-
-const ClockDisplay = styled.div`
   color: #f7f7f7;
-  font-size: 10rem;
+  text-align: center;
+  font-size: 10vh;
+  line-height: 12vh;
   font-weight: bold;
-  min-width: 5rem;
-`
+  min-width: 42.5vw;
+  user-select: none;
 
-function Clock({className, timeZone}) {
-    let date = new Date();
+  @media only screen and (max-width: 1366px) {
+    font-size: 9vh;
+    line-height: 10vh;
+    min-width: 45rem;
+  }
+  
+  @media only screen and (max-width: 850px) {
+    font-size: 8vh;
+    line-height: 9vh;
+    min-width: 35rem;
+  }
+`;
 
-    const [hours, setHours] = useState(date.getHours());
-    const [minutes, setMinutes] = useState(date.getMinutes());
-    const [seconds, setSeconds] = useState(date.getSeconds());
+function Clock({className, timezone, isTimezoneToggled}) {
+    const localeRef = useRef(navigator.language);
+    const timezoneRef = useRef(Intl.DateTimeFormat().resolvedOptions().timeZone);
+    const [weekDay, setWeekDay] = useState('');
+    const [date, setDate] = useState('');
+    const [time, setTime] = useState('');
 
-    // useEffect(() => {
-    //     function updateState() {
-    //         requestAnimationFrame(() => {
-    //             date = new Date();
-    //             setHours(date.getHours());
-    //             setMinutes(date.getMinutes());
-    //             setSeconds(date.getSeconds());
-    //             updateState();
-    //         });
-    //     }
-    //
-    //     updateState();
-    // }, []);
+    useEffect(() => {
+        if (isTimezoneToggled) {
+            localeRef.current = timezone?.locale || navigator.language;
+            timezoneRef.current = timezone?.code || Intl.DateTimeFormat().resolvedOptions().timeZone;
+        }
+        else {
+            localeRef.current = navigator.language;
+            timezoneRef.current = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        }
+    }, [isTimezoneToggled])
+
+    useEffect(() => {
+        function updateState() {
+            requestAnimationFrame(() => {
+                const date = new Date();
+
+                setWeekDay(date.toLocaleDateString(localeRef.current, { weekday: 'long', timeZone: timezoneRef.current }));
+                setDate(date.toLocaleDateString(localeRef.current, { day: 'numeric', month: 'long', year: 'numeric', timeZone: timezoneRef.current }));
+                setTime(date.toLocaleTimeString(localeRef.current, { hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: timezoneRef.current }));
+                updateState();
+            });
+        }
+
+        updateState();
+    }, []);
 
     function reducer(state, action) {
         switch (action.type) {
@@ -108,19 +156,11 @@ function Clock({className, timeZone}) {
 
     return (
         <div className={className}>
-            <ClockDisplay>
-                {
-                    // `${hours < 10 ? "0" + hours.toString() : hours}
-                    // :
-                    // ${minutes < 10 ? "0" + minutes.toString() : minutes}
-                    // :
-                    // ${seconds < 10 ? "0" + seconds.toString() : seconds}`
-
-                    `${Math.round(state.count / 60) < 10 ? "0" + Math.round(state.count / 60) : Math.round(state.count / 60)} : ${state.count % 60 < 10 ? "0" + state.count % 60 : state.count % 60}`
-                }
-            </ClockDisplay>
+            {weekDay} <br/>
+            {date} <br/>
+            {time}
         </div>
-    )
+    );
 }
 
 export default App;
