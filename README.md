@@ -5,11 +5,13 @@
 ### How to get started
 
 From root directory, run:
-> `cd frontend`
-`npm install`
-`npm run build`
-`cd ..`
-`go run main.go`
+```
+cd frontend
+npm install
+run build
+cd ..
+go run main.go`
+``` 
 
 Then navigate to `localhost:8080` with your browser
 
