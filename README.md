@@ -1,8 +1,8 @@
-#Kumojin clock 0.1alpha
+# Kumojin clock 0.1alpha
 
 <img src="https://i.imgur.com/Slp1hkL.gif" width="320" height="180">
 
-###How to get started###
+### How to get started
 
 From root directory, run:
 > `cd frontend`
@@ -12,11 +12,11 @@ From root directory, run:
 
 Then navigate to `localhost:8080` with your browser
 
-**  How to run tests **
+####  How to run tests ####
 
 run `go test` from root folder
 
-###How to use###
+### How to use
 
 Use switch to toggle between local time and Japan time:
 
