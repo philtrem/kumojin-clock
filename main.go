@@ -30,6 +30,7 @@ func main() {
 type timezone struct {
 	Id int `json:"id"`
 	Code string `json:"code"`
+	Locale string `json:"locale"`
 	Name string `json:"name"`
 }
 
@@ -37,6 +38,7 @@ func timezoneHandler(w http.ResponseWriter, r *http.Request) {
 	japanTimezone := timezone{
 		Id: 0,
 		Code: "JST",
+		Locale: "ja",
 		Name: "Japan Standard Time",
 	}
 
