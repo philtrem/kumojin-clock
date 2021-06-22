@@ -11,6 +11,13 @@ const Container = styled.div`
   z-index: -1;
 `;
 
+const Overlay = styled.div`
+  position: absolute;
+  background-image: ${props => props.minutes > 1080 || props.minutes < 360 ? 'linear-gradient(to bottom, #000000, #000a21)' : ''};
+  height: 100%;
+  width: 100%;
+`
+
 // Required for animation to remain consistent on mobile (the size of the sun changes and we need to retain the same trajectory)
 const SunContainer = styled.div.attrs(props => ({
     style: {
@@ -34,7 +41,6 @@ const Sun = styled.div.attrs(props => ({
 }))`
   margin: 0 auto;
   border-radius: 50%;
-  box-shadow: 0 0 10rem #ffffff;
   height: 10rem;
   width: 10rem;
   z-index: -1;
@@ -108,18 +114,22 @@ function generateColorValues() {
     return colorValues;
 }
 
-function SunAnimationWidget({timezone}) {
+function SunAnimationWidget({minutes}) {
     const coordinatesRef = useRef(null);
     const colorValuesRef = useRef(null);
 
-    const [minutes, setMinutes] = useState(0);
     const [x, setX] = useState(new Decimal(0));
     const [y, setY] = useState(new Decimal(0));
     const multiplierRef = useRef(new Decimal(1));
 
     function updateSunPosition() {
-        setX(coordinatesRef.current[minutes][0]);
-        setY(coordinatesRef.current[minutes][1]);
+        if (minutes < 360 || minutes > 1080) {
+            setX(0);
+            setY(0);
+        } else {
+            setX(coordinatesRef.current[minutes][0]);
+            setY(coordinatesRef.current[minutes][1]);
+        }
     }
 
     const [greenValue, setGreenValue] = useState(0);
@@ -138,26 +148,22 @@ function SunAnimationWidget({timezone}) {
     }, []);
 
     useEffect(() => {
+        console.log(minutes);
+
         setTimeout(() => {
             if (minutes >= 1440) {
-                setMinutes(0);
                 multiplierRef.current = new Decimal(1);
                 return;
             }
-
-            if (minutes <= startPoint || minutes >= endPoint) {
-                setMinutes(v => v + 1);
-                return;
-            }
-
+            
             updateSunPosition();
-            setMinutes(v => v + 1);
-        }, 1000);
+        }, 20);
         updateSunColor();
     }, [minutes]);
 
     return (
         <Container>
+            <Overlay minutes={minutes}/>
             <SunContainer x={x} y={y}>
                 <Sun x={x} y={y} greenValue={greenValue} blueValue={blueValue}/>
             </SunContainer>

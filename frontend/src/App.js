@@ -1,9 +1,10 @@
 import styled from 'styled-components';
-import SunAnimationWidget from "./Components/SunAnimationWidget";
+import SunAnimationWidget from './Components/SunAnimationWidget';
 import {useEffect, useReducer, useRef, useState} from "react";
 import cloudsMountainsImageTop from './Images/clouds-mountains-top.png';
 import cloudsMountainsImage from './Images/clouds-mountains.jpg';
-import StyledToggleSwitch from "./Components/ToggleSwitch";
+import StyledToggleSwitch from './Components/ToggleSwitch';
+import formattedTimeToMinutesParser from './Utils/utils'
 
 const Wrapper = styled.div`
   display: flex;
@@ -28,6 +29,7 @@ const Container = styled.div`
 
 const CloudsMountainsImageTop = styled.div`
   background-repeat: no-repeat;
+  background-color: ${props => props.minutes > 1080 || props.minutes < 360 ? '#000a21' : ''};
   background-image: url(${cloudsMountainsImageTop});
   height: 32px;
   width: 100%;
@@ -36,6 +38,7 @@ const CloudsMountainsImageTop = styled.div`
 function App() {
     const [timezone, setTimezone] = useState(null);
     const [isTimezoneToggled, setIsTimezoneToggled] = useState(false);
+    const [timeInMinutes, setTimeInMinutes] = useState(0);
 
     useEffect(() => {
         let didCancel = false;
@@ -64,12 +67,12 @@ function App() {
             </header>
 
             <Container height={'55%'} width={'100%'} flexDirection={'column'}>
-                <SunAnimationWidget timezone={timezone}/>
-                <CloudsMountainsImageTop/>
+                <SunAnimationWidget timezone={timezone} minutes={timeInMinutes}/>
+                <CloudsMountainsImageTop minutes={timeInMinutes}/>
             </Container>
 
             <Container height={'45%'} width={'100%'} backgroundImage={cloudsMountainsImage} flexDirection={'row'}>
-                <StyledClock timezone={timezone} isTimezoneToggled={isTimezoneToggled}/>
+                <StyledClock timezone={timezone} isTimezoneToggled={isTimezoneToggled} setTimeInMinutes={setTimeInMinutes}/>
                 <StyledToggleSwitch setIsToggled={setIsTimezoneToggled}/>
             </Container>
         </Wrapper>
@@ -98,7 +101,7 @@ const StyledClock = styled(Clock)`
   }
 `;
 
-function Clock({className, timezone, isTimezoneToggled}) {
+function Clock({className, timezone, isTimezoneToggled, setTimeInMinutes}) {
     const localeRef = useRef(navigator.language);
     const timezoneRef = useRef(Intl.DateTimeFormat().resolvedOptions().timeZone);
     const [weekDay, setWeekDay] = useState('');
@@ -120,7 +123,8 @@ function Clock({className, timezone, isTimezoneToggled}) {
         function updateState() {
             requestAnimationFrame(() => {
                 const date = new Date();
-
+                const timeInMinutes = formattedTimeToMinutesParser(date.toLocaleTimeString('default', { hour: 'numeric', minute: 'numeric', timeZone: timezoneRef.current }));
+                setTimeInMinutes(timeInMinutes);
                 setWeekDay(date.toLocaleDateString(localeRef.current, { weekday: 'long', timeZone: timezoneRef.current }));
                 setDate(date.toLocaleDateString(localeRef.current, { day: 'numeric', month: 'long', year: 'numeric', timeZone: timezoneRef.current }));
                 setTime(date.toLocaleTimeString(localeRef.current, { hour: 'numeric', minute: 'numeric', second: 'numeric', timeZone: timezoneRef.current }));
