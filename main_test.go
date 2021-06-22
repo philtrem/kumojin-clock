@@ -40,8 +40,9 @@ func TestTimezoneEndpoint(t *testing.T) {
 		}
 
 		expectedData := timezone{
-			Id:   0,
+			Id: 0,
 			Code: "JST",
+			Locale: "ja",
 			Name: "Japan Standard Time",
 		}
 
